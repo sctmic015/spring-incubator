@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 import entelect.training.incubator.spring.notification.sms.client.impl.MoloCellSmsClient;
+import entelect.training.incubator.spring.loyalty.server.RewardsServiceImpl;
 
 @SpringBootApplication
 public class BookingServiceApplication {
@@ -22,4 +23,10 @@ public class BookingServiceApplication {
     public MoloCellSmsClient getMoloCellSmsClient() {
         return new MoloCellSmsClient();
     }
+
+    @Bean
+    public RewardsServiceImpl getRewardsServiceImpl() {
+        return new RewardsServiceImpl();
+    }
+
 }

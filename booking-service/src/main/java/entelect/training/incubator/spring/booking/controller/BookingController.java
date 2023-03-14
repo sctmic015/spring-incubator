@@ -4,6 +4,7 @@ import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.service.BookingService;
 import entelect.training.incubator.spring.customer.model.Customer;
 import entelect.training.incubator.spring.flight.model.Flight;
+import entelect.training.incubator.spring.loyalty.server.RewardsServiceImpl;
 import entelect.training.incubator.spring.notification.sms.client.impl.MoloCellSmsClient;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -30,11 +31,13 @@ public class BookingController {
 
     private final MoloCellSmsClient moloCellSmsClient;
 
+    private final RewardsServiceImpl rewardsService;
 
-    public BookingController(BookingService bookingService, RestTemplate restTemplate, MoloCellSmsClient moloCellSmsClient) {
+    public BookingController(BookingService bookingService, RestTemplate restTemplate, MoloCellSmsClient moloCellSmsClient, RewardsServiceImpl rewardsService) {
         this.bookingService = bookingService;
         this.restTemplate = restTemplate;
         this.moloCellSmsClient = moloCellSmsClient;
+        this.rewardsService = rewardsService;
     }
 
     @PostMapping
@@ -55,11 +58,14 @@ public class BookingController {
             Flight flight = restTemplate.exchange("http://localhost:8202/flights/" + booking.getFlightId(), HttpMethod.GET, entity, Flight.class).getBody();
             final Booking savedBooking  = bookingService.createBooking(booking);
 
-            //BigDecimal balance = rewardsService.getBalance(customer.getPassportNumber());
-//            balance = balance.add(BigDecimal.valueOf(100));
-//            rewardsService.updateBalance(customer.getPassportNumber(), balance);
+            BigDecimal balance = rewardsService.getBalance(customer.getPassportNumber());
+            balance = balance.add(BigDecimal.valueOf(100));
+            rewardsService.updateBalance(customer.getPassportNumber(), balance);
 
             moloCellSmsClient.sendSms(customer.getPhoneNumber(), "Molo Air: Confirming flight " + flight.getFlightNumber() +
+                    " booked for " + customer.getFirstName() + " " + customer.getFirstName() + " on " + flight.getDepartureTime() + ".");
+
+            System.out.println("Molo Air: Confirming flight " + flight.getFlightNumber() +
                     " booked for " + customer.getFirstName() + " " + customer.getFirstName() + " on " + flight.getDepartureTime() + ".");
 
             return new ResponseEntity<>(savedBooking, HttpStatus.OK);
